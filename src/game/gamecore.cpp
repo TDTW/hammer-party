@@ -72,6 +72,8 @@ void CCharacterCore::Reset()
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
 	m_TriggeredEvents = 0;
+	
+	m_LastKicker = -1;
 }
 
 void CCharacterCore::Tick(bool UseInput)
@@ -86,6 +88,10 @@ void CCharacterCore::Tick(bool UseInput)
 	if(m_pCollision->CheckPoint(m_Pos.x-PhysSize/2, m_Pos.y+PhysSize/2+5))
 		Grounded = true;
 
+	m_LastKickerTick++;
+	if(Grounded && m_LastKickerTick > SERVER_TICK_SPEED/5)
+		m_LastKicker = -1;
+				
 	vec2 TargetDirection = normalize(vec2(m_Input.m_TargetX, m_Input.m_TargetY));
 
 	m_Vel.y += m_pWorld->m_Tuning.m_Gravity;
@@ -215,7 +221,7 @@ void CCharacterCore::Tick(bool UseInput)
 				CCharacterCore *pCharCore = m_pWorld->m_apCharacters[i];
 				if(!pCharCore || pCharCore == this)
 					continue;
-
+					
 				vec2 ClosestPoint = closest_point_on_line(m_HookPos, NewPos, pCharCore->m_Pos);
 				if(distance(pCharCore->m_Pos, ClosestPoint) < PhysSize+2.0f)
 				{
@@ -263,6 +269,14 @@ void CCharacterCore::Tick(bool UseInput)
 				m_HookPos = m_Pos;
 			}
 
+			for(int j = 0; j < MAX_CLIENTS; j++)
+			{
+				CCharacterCore *tCharCore = m_pWorld->m_apCharacters[j];
+				if(!tCharCore)
+					continue;
+				if(tCharCore == this)
+					pCharCore->m_LastKicker = j;
+			}
 			// keep players hooked for a max of 1.5sec
 			//if(Server()->Tick() > hook_tick+(Server()->TickSpeed()*3)/2)
 				//release_hooked();
