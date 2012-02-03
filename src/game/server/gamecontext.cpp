@@ -14,6 +14,7 @@
 #include "gamemodes/ctf.h"
 #include "gamemodes/mod.h"
 #include "gamemodes/hammer.h"
+#include "gamemodes/hammertdm.h"
 
 enum
 {
@@ -540,7 +541,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
 	SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 
-	SendChatTarget(ClientID, "Welcome to Hammer Party 0.1!");
+	SendChatTarget(ClientID, "Welcome to Hammer Party 0.2!");
 	SendChatTarget(ClientID, "Server coded by Psycho.God (F.O.zer0)!");
 	SendChatTarget(ClientID, "Good luck! Have fun!");
 	
@@ -1479,6 +1480,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		m_pController = new CGameControllerTDM(this);
 	else if(str_comp(g_Config.m_SvGametype, "hammerparty") == 0)
 		m_pController = new CGameControllerHP(this);
+	else if(str_comp(g_Config.m_SvGametype, "hammerpartytdm") == 0)
+		m_pController = new CGameControllerHPT(this);
 	else
 		m_pController = new CGameControllerDM(this);
 

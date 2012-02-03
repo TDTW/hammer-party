@@ -260,7 +260,24 @@ void CCharacterCore::Tick(bool UseInput)
 		{
 			CCharacterCore *pCharCore = m_pWorld->m_apCharacters[m_HookedPlayer];
 			if(pCharCore)
+			{
 				m_HookPos = pCharCore->m_Pos;
+				
+				for(int j = 0; j < MAX_CLIENTS; j++)
+				{
+					CCharacterCore *tCharCore = m_pWorld->m_apCharacters[j];
+					if(!tCharCore)
+						continue;
+					if(tCharCore == this)
+						pCharCore->m_LastKicker = j;
+				}
+				if(m_HookTick > SERVER_TICK_SPEED+SERVER_TICK_SPEED/5)
+				{
+					m_HookedPlayer = -1;
+					m_HookState = HOOK_RETRACTED;
+					m_HookPos = m_Pos;
+				}
+			}
 			else
 			{
 				// release hook
@@ -269,14 +286,6 @@ void CCharacterCore::Tick(bool UseInput)
 				m_HookPos = m_Pos;
 			}
 
-			for(int j = 0; j < MAX_CLIENTS; j++)
-			{
-				CCharacterCore *tCharCore = m_pWorld->m_apCharacters[j];
-				if(!tCharCore)
-					continue;
-				if(tCharCore == this)
-					pCharCore->m_LastKicker = j;
-			}
 			// keep players hooked for a max of 1.5sec
 			//if(Server()->Tick() > hook_tick+(Server()->TickSpeed()*3)/2)
 				//release_hooked();
@@ -308,12 +317,6 @@ void CCharacterCore::Tick(bool UseInput)
 
 		// release hook (max hook time is 1.25
 		m_HookTick++;
-		if(m_HookedPlayer != -1 && (m_HookTick > SERVER_TICK_SPEED+SERVER_TICK_SPEED/5 || !m_pWorld->m_apCharacters[m_HookedPlayer]))
-		{
-			m_HookedPlayer = -1;
-			m_HookState = HOOK_RETRACTED;
-			m_HookPos = m_Pos;
-		}
 	}
 
 	if(m_pWorld)

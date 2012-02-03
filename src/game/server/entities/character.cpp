@@ -296,8 +296,11 @@ void CCharacter::FireWeapon()
 				if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 					continue;
 											
-				GameServer()->m_World.m_Core.m_apCharacters[pTarget->GetPlayer()->GetCID()]->m_LastKicker = this->GetPlayer()->GetCID();
-				GameServer()->m_World.m_Core.m_apCharacters[pTarget->GetPlayer()->GetCID()]->m_LastKickerTick = 0;
+				if(GameServer()->m_World.m_Core.m_apCharacters[pTarget->GetPlayer()->GetCID()])
+				{
+					GameServer()->m_World.m_Core.m_apCharacters[pTarget->GetPlayer()->GetCID()]->m_LastKicker = this->GetPlayer()->GetCID();
+					GameServer()->m_World.m_Core.m_apCharacters[pTarget->GetPlayer()->GetCID()]->m_LastKickerTick = 0;
+				}
 				// set his velocity to fast upward (for now)
 				if(length(pTarget->m_Pos-ProjStartPos) > 0.0f)
 					GameServer()->CreateHammerHit(pTarget->m_Pos-normalize(pTarget->m_Pos-ProjStartPos)*m_ProximityRadius*0.5f);
@@ -310,7 +313,7 @@ void CCharacter::FireWeapon()
 				else
 					Dir = vec2(0.f, -1.f);
 
-				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * ((m_Core.m_Vel.x*8 + 5.0f)+(m_Core.m_Vel.y*8 + 5.0f)), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * g_Config.m_SvHammerStrength, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
 				Hits++;
 			}
@@ -700,7 +703,8 @@ void CCharacter::Die(int Killer, int Weapon)
 		if(GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] && GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()]->m_LastKicker != -1)
 			Killer = GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()]->m_LastKicker;
 	}	
-	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()]->m_LastKicker = -1;
+	if(GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()])
+		GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()]->m_LastKicker = -1;
 	
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 
